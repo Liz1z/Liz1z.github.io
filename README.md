@@ -35,10 +35,6 @@ npm run type-check  # 严格类型检查（vue-tsc）
 | `socials[]` | 社交按钮（GitHub / Email / X） |
 | `footer` | 页脚文案 |
 
-同时把 `index.html` 里的 `<title>` 和 meta description 改成你自己的。
-
-> ⚠️ 当前姓名「苏明轩」、项目、邮箱均为占位内容，发布前务必替换。
-
 ## 部署到 GitHub Pages
 
 项目已内置 GitHub Actions 自动部署（`.github/workflows/deploy.yml`）：
@@ -89,13 +85,6 @@ personal-homepage/
 - 提交失败（无法唤起邮件客户端）时回退提示直连邮箱。
 
 表单提交通过 `mailto:` 拉起本机邮件客户端并预填主题/正文——**无需任何后端**，数据不经过服务器。
-
-## 默认假设（开发时未明确、按合理默认处理的事项）
-
-1. **框架选 Vue 3**：设计阶段 React/Vue 未定，本项目按 Vite + Vue 3 + TS 落地；
-2. **占位内容**：姓名/项目/邮箱等沿用设计稿示例，集中在 `site.ts` 一处替换；
-3. **部署形态**：GitHub Pages 静态托管，联系表单走 mailto 而非后端接口；
-4. **移动端导航**：小屏隐藏中间链接（保留 logo 与 GitHub 入口），未做汉堡菜单。
 
 ## 相关文件
 
