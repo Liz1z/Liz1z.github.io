@@ -103,7 +103,7 @@ export const siteConfig: SiteConfig = {
 
   // ===== 社交链接（TODO: 替换为真实账号）=====
   socials: [
-    { label: 'GitHub', href: 'https://github.com/yourname', icon: 'github' },
+    { label: 'GitHub', href: 'https://github.com/1435243011', icon: 'github' },
     { label: 'Email', href: 'mailto:hello@sumingxuan.dev', icon: 'mail' },
     { label: 'X / Twitter', href: 'https://x.com/yourname', icon: 'x' },
   ],
