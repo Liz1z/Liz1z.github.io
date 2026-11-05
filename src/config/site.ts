@@ -45,13 +45,13 @@ export interface SiteConfig {
 }
 
 export const siteConfig: SiteConfig = {
-  // ===== 基础信息（TODO: 替换为真实内容）=====
+  // ===== 基础信息
   name: '狸子z',
   role: 'CS Student · 计算机科学',
   tagline: '把想法编译成现实。',
   bio: '一名喜欢造轮子的计算机科学学生，热衷于系统编程与 Web 开发。课余时间写 Rust、打 蓝桥杯、给开源项目提 PR，正在寻找 2026 年暑期实习机会。',
   status: '目前在学：Rust + 分布式系统',
-  email: '1435243011@qq.com', // TODO: 替换为真实邮箱
+  email: '1435243011@qq.com',
 
   // ===== Hero 代码卡 =====
   codeCard: {
@@ -66,7 +66,7 @@ export const siteConfig: SiteConfig = {
     ],
   },
 
-  // ===== 项目展示（TODO: 替换为真实项目与链接）=====
+  // ===== 项目展示=====
   projects: [
     {
       name: 'KVStore',
@@ -94,14 +94,14 @@ export const siteConfig: SiteConfig = {
     },
   ],
 
-  // ===== 技能栈（TODO: 替换为真实技能）=====
+  // ===== 技能栈=====
   skills: [
     { label: 'Languages', skills: ['Rust', 'Go', 'TypeScript', 'Java', 'C++'] },
     { label: 'Frameworks', skills: ['Vue 3', 'React', 'Next.js', 'Axum', 'Spring Boot'] },
     { label: 'Tools', skills: ['Git', 'Docker', 'Linux', 'Neovim', 'PostgreSQL'] },
   ],
 
-  // ===== 社交链接（TODO: 替换为真实账号）=====
+  // ===== 社交链接=====
   socials: [
     { label: 'GitHub', href: 'https://github.com/1435243011', icon: 'github' },
     { label: 'Email', href: '1435243011@qq.com', icon: 'mail' },
