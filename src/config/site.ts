@@ -109,7 +109,7 @@ export const siteConfig: SiteConfig = {
 
   // ===== 社交链接=====
   socials: [
-    { label: 'GitHub', href: 'https://github.com/1435243011', icon: 'github' },
+    { label: 'GitHub', href: 'https://github.com/Liz1z', icon: 'github' },
     { label: 'Email', href: '1435243011@qq.com', icon: 'mail' },
     { label: 'X / Twitter', href: 'https://x.com/yourname', icon: 'x' },
   ],
