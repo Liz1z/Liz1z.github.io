@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="微信飞机大战：使用经典素材实现的 Canvas 纵版射击小游戏，支持键盘、鼠标与触屏操作。">
+  <title>微信飞机大战</title>
+  <style>
+    :root {
+      --page: #0a0a0b;
+      --panel: #16161a;
+      --line: #27272a;
+      --accent: #4fd1c5;
+      --accent-strong: #2dd4bf;
+      --text: #fafafa;
+      --muted: #a1a1aa;
+      --danger: #f87171;
+      --gold: #fbbf24;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(79, 209, 197, 0.12), transparent 30%),
+        radial-gradient(circle at 80% 90%, rgba(79, 209, 197, 0.08), transparent 34%),
+        var(--page);
+      color: var(--text);
+      font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow-x: hidden;
+    }
+
+    .shell {
+      width: min(100%, 560px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 2px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 18px var(--accent);
+    }
+
+    h1 {
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .version {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font: 12px/1.2 "Geist Mono", "SF Mono", Consolas, monospace;
+    }
+
+    .stage {
+      position: relative;
+      width: min(100%, 480px);
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #d6d9dc;
+      box-shadow: var(--shadow);
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      background: #d6d9dc;
+      cursor: crosshair;
+      outline: none;
+    }
+
+    .hud-actions {
+      position: absolute;
+      z-index: 4;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      border: 0;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .image-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      min-height: 34px;
+      padding: 2px;
+      border-radius: 8px;
+      background: rgba(10, 10, 11, 0.42);
+      backdrop-filter: blur(8px);
+      transition: transform 120ms ease, background 120ms ease, opacity 120ms ease;
+    }
+
+    .image-button:hover { background: rgba(10, 10, 11, 0.62); }
+    .image-button:active { transform: scale(0.96); }
+    .image-button img { display: block; max-width: 100%; height: auto; pointer-events: none; }
+    .image-button[hidden] { display: none; }
+
+    .text-button {
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #062421;
+      font-weight: 700;
+      box-shadow: 0 10px 26px rgba(79, 209, 197, 0.28);
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+
+    .text-button:hover { filter: brightness(1.06); }
+    .text-button:active { transform: translateY(1px) scale(0.99); }
+
+    .secondary-button {
+      min-height: 40px;
+      padding: 0 16px;
+      border: 1px solid rgba(250, 250, 250, 0.18);
+      border-radius: 999px;
+      background: rgba(22, 22, 26, 0.72);
+      color: var(--text);
+      backdrop-filter: blur(10px);
+    }
+
+    .bomb-button {
+      position: absolute;
+      z-index: 4;
+      right: 12px;
+      bottom: 14px;
+      width: 64px;
+      height: 64px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(250, 250, 250, 0.22);
+      border-radius: 50%;
+      background: rgba(10, 10, 11, 0.48);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(8px);
+    }
+
+    .bomb-button img { width: 38px; height: auto; pointer-events: none; }
+    .bomb-button[data-visible="true"] { display: flex; }
+
+    .bomb-count {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      min-width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: var(--danger);
+      color: #240606;
+      font: 700 12px/1 "Geist Mono", Consolas, monospace;
+    }
+
+    .screen {
+      position: absolute;
+      z-index: 5;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(180deg, rgba(10, 10, 11, 0.22), rgba(10, 10, 11, 0.76));
+      backdrop-filter: blur(3px);
+    }
+
+    .screen[hidden] { display: none; }
+
+    .panel {
+      width: min(100%, 340px);
+      padding: 28px 24px;
+      border: 1px solid rgba(250, 250, 250, 0.14);
+      border-radius: 20px;
+      background: rgba(16, 16, 19, 0.78);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.38);
+      text-align: center;
+      backdrop-filter: blur(16px);
+    }
+
+    .pause-banner {
+      display: block;
+      width: 79px;
+      height: auto;
+      margin: 0 auto 14px;
+    }
+
+    .panel h2 {
+      margin-bottom: 10px;
+      font-size: clamp(28px, 7vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+    }
+
+    .panel .subtitle {
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .panel .score-line {
+      margin: 6px 0 16px;
+      color: var(--gold);
+      font: 700 18px/1.3 "Geist Mono", Consolas, monospace;
+    }
+
+    .panel .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .loading {
+      position: absolute;
+      z-index: 6;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #d6d9dc;
+      color: #343940;
+      font: 14px/1.4 "Geist Mono", Consolas, monospace;
+    }
+
+    .loading[hidden] { display: none; }
+
+    .tips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 14px;
+      color: var(--muted);
+      font: 12px/1.5 "Geist Mono", "SF Mono", Consolas, monospace;
+      text-align: center;
+    }
+
+    .tips strong { color: var(--text); font-weight: 600; }
+
+    @media (max-width: 560px) {
+      body { align-items: flex-start; padding: 12px; }
+      .shell { gap: 10px; }
+      h1 { font-size: 16px; }
+      .version { font-size: 11px; }
+      .stage { border-radius: 14px; }
+      .panel { padding: 24px 18px; }
+      .tips { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" aria-label="微信飞机大战游戏">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>微信飞机大战</h1>
+      </div>
+      <span class="version">CLASSIC CANVAS</span>
+    </div>
+
+    <section class="stage" aria-label="游戏区域">
+      <canvas id="gameCanvas" width="480" height="720" tabindex="0" aria-label="飞机大战画布。使用方向键或拖动控制战机。"></canvas>
+
+      <div class="hud-actions">
+        <button id="pauseButton" class="image-button" type="button" aria-label="暂停游戏" hidden>
+          <img id="pauseIcon" src="assets/pause1.png" alt="" width="29" height="30">
+        </button>
+        <button id="muteButton" class="secondary-button" type="button" aria-label="切换音效">音效 开</button>
+      </div>
+
+      <button id="bombButton" class="bomb-button" type="button" aria-label="使用炸弹" data-visible="false">
+        <img src="assets/bomb.png" alt="" width="42" height="45">
+        <span id="bombCount" class="bomb-count">0</span>
+      </button>
+
+      <div id="menuScreen" class="screen">
+        <div class="panel">
+          <h2>飞机大战</h2>
+          <p class="subtitle">击落敌机、拾取补给、躲开弹幕。每 600 分触发一次大型机挑战。</p>
+          <div class="actions">
+            <button id="startButton" class="text-button" type="button">开始游戏</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pauseScreen" class="screen" hidden>
+        <div class="panel">
+          <img class="pause-banner" src="assets/pause.png" alt="" width="79" height="30" loading="lazy">
+          <h2>已暂停</h2>
+          <p class="subtitle">战机、弹幕与计时已经冻结。</p>
+          <div class="actions">
+            <button id="resumeButton" class="text-button" type="button">继续游戏</button>
+            <button id="pauseRestartButton" class="secondary-button" type="button">重新开始</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="gameOverScreen" class="screen" hidden>
+        <div class="panel">
+          <h2>游戏结束</h2>
+          <p id="finalScore" class="score-line">得分 0</p>
+          <p id="bestScore" class="subtitle">最高分 0</p>
+          <div class="actions">
+            <button id="restartButton" class="text-button" type="button">再来一局</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="loading" class="loading">正在加载素材...</div>
+    </section>
+
+    <div class="tips" aria-label="操作说明">
+      <span><strong>移动</strong> 方向键 / WASD / 拖动</span>
+      <span><strong>射击</strong> 自动</span>
+      <span><strong>炸弹</strong> B 或右下按钮</span>
+      <span><strong>暂停</strong> P 或右上按钮</span>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var LOGICAL_W = 480;
+      var LOGICAL_H = 720;
+      var STORAGE_KEY = 'classicPlaneWarBest';
+      var ASSETS = {
+        bg: 'assets/bg.png',
+        plane: 'assets/plane.png',
+        small: 'assets/small.png',
+        middle: 'assets/middle.png',
+        big: 'assets/big.png',
+        yellowBullet: 'assets/yellow_bullet.png',
+        blueBullet: 'assets/blue_bullet.png',
+        bomb: 'assets/bomb.png',
+        bombAward: 'assets/bomb_award.png',
+        bulletAward: 'assets/bullet_award.png',
+        explosion: 'assets/explosion.png',
+        pause: 'assets/pause.png',
+        pause1: 'assets/pause1.png',
+        pause2: 'assets/pause2.png'
+      };
+
+      var canvas = document.getElementById('gameCanvas');
+      var ctx = canvas.getContext('2d');
+      var loadingEl = document.getElementById('loading');
+      var menuScreen = document.getElementById('menuScreen');
+      var pauseScreen = document.getElementById('pauseScreen');
+      var gameOverScreen = document.getElementById('gameOverScreen');
+      var finalScoreEl = document.getElementById('finalScore');
+      var bestScoreEl = document.getElementById('bestScore');
+      var startButton = document.getElementById('startButton');
+      var restartButton = document.getElementById('restartButton');
+      var pauseRestartButton = document.getElementById('pauseRestartButton');
+      var resumeButton = document.getElementById('resumeButton');
+      var pauseButton = document.getElementById('pauseButton');
+      var pauseIcon = document.getElementById('pauseIcon');
+      var muteButton = document.getElementById('muteButton');
+      var bombButton = document.getElementById('bombButton');
+      var bombCount = document.getElementById('bombCount');
+
+      var images = {};
+      var state = 'loading';
+      var lastTime = 0;
+      var dpr = 1;
+      var keys = Object.create(null);
+      var drag = null;
+
+      var player;
+      var bullets = [];
+      var enemies = [];
+      var enemyBullets = [];
+      var powerups = [];
+      var explosions = [];
+      var floatTexts = [];
+
+      var score = 0;
+      var bestScore = readBestScore();
+      var level = 1;
+      var spawnTimer = 0;
+      var elapsed = 0;
+      var bgOffset = 0;
+      var shake = 0;
+      var flash = 0;
+      var combo = 0;
+      var comboTimer = 0;
+      var nextBossScore = 600;
+      var boss = null;
+
+      var audioCtx = null;
+      var muted = false;
+
+      function readBestScore() {
+        try {
+          var raw = window.localStorage.getItem(STORAGE_KEY);
+          var value = Number(raw);
+          return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+        } catch (error) {
+          return 0;
+        }
+      }
+
+      function writeBestScore() {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, String(bestScore));
+        } catch (error) {
+          // 存储不可用时保持本局可玩。
+        }
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function rand(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function rectsOverlap(a, b) {
+        return Math.abs(a.x - b.x) * 2 < a.w + b.w && Math.abs(a.y - b.y) * 2 < a.h + b.h;
+      }
+
+      function distanceSquared(a, b) {
+        var dx = a.x - b.x;
+        var dy = a.y - b.y;
+        return dx * dx + dy * dy;
+      }
+
+      function resizeCanvas() {
+        dpr = clamp(window.devicePixelRatio || 1, 1, 2.5);
+        canvas.width = Math.round(LOGICAL_W * dpr);
+        canvas.height = Math.round(LOGICAL_H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function loadImage(key, src) {
+        return new Promise(function (resolve, reject) {
+          var img = new Image();
+          img.onload = function () {
+            images[key] = img;
+            resolve(img);
+          };
+          img.onerror = function () {
+            reject(new Error('素材加载失败：' + src));
+          };
+          img.src = src;
+        });
+      }
+
+      function preload() {
+        var jobs = Object.keys(ASSETS).map(function (key) {
+          return loadImage(key, ASSETS[key]);
+        });
+        return Promise.all(jobs);
+      }
+
+      function ensureAudio() {
+        if (muted || audioCtx) return;
+        var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextCtor) return;
+        try {
+          audioCtx = new AudioContextCtor();
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(function () {});
+          }
+        } catch (error) {
+          audioCtx = null;
+        }
+      }
+
+      function playTone(type) {
+        if (muted) return;
+        ensureAudio();
+        if (!audioCtx || audioCtx.state === 'closed') return;
+
+        var now = audioCtx.currentTime;
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        var filter = audioCtx.createBiquadFilter();
+        var duration = 0.08;
+        var freq = 440;
+        var volume = 0.035;
+
+        if (type === 'shoot') { freq = 760; duration = 0.045; volume = 0.018; osc.type = 'square'; }
+        else if (type === 'hit') { freq = 210; duration = 0.11; volume = 0.04; osc.type = 'sawtooth'; }
+        else if (type === 'boom') { freq = 92; duration = 0.22; volume = 0.06; osc.type = 'triangle'; }
+        else if (type === 'pickup') { freq = 980; duration = 0.12; volume = 0.035; osc.type = 'sine'; }
+        else if (type === 'bomb') { freq = 58; duration = 0.42; volume = 0.08; osc.type = 'sawtooth'; }
+        else if (type === 'button') { freq = 520; duration = 0.06; volume = 0.025; osc.type = 'sine'; }
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(type === 'bomb' ? 520 : 1800, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(volume, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.frequency.setValueAtTime(freq, now);
+        if (type === 'boom' || type === 'bomb') {
+          osc.frequency.exponentialRampToValueAtTime(Math.max(30, freq * 0.45), now + duration);
+        }
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
+
+      function resetGame() {
+        player = {
+          x: LOGICAL_W / 2,
+          y: LOGICAL_H - 92,
+          w: 50,
+          h: 64,
+          hp: 3,
+          maxHp: 5,
+          firePower: 1,
+          fireCooldown: 0,
+          invulnerable: 0,
+          bombs: 1,
+          alive: true
+        };
+        bullets.length = 0;
+        enemies.length = 0;
+        enemyBullets.length = 0;
+        powerups.length = 0;
+        explosions.length = 0;
+        floatTexts.length = 0;
+        score = 0;
+        level = 1;
+        spawnTimer = 0.6;
+        elapsed = 0;
+        bgOffset = 0;
+        shake = 0;
+        flash = 0;
+        combo = 0;
+        comboTimer = 0;
+        nextBossScore = 600;
+        boss = null;
+      }
+
+      function startGame() {
+        ensureAudio();
+        resetGame();
+        state = 'playing';
+        updateDom();
+        playTone('button');
+        canvas.focus({ preventScroll: true });
+      }
+
+      function togglePause(forceState) {
+        if (state !== 'playing' && state !== 'paused') return;
+        var next = typeof forceState === 'string' ? forceState : (state === 'playing' ? 'paused' : 'playing');
+        if (next === state) return;
+        state = next;
+        if (state === 'paused') {
+          keys = Object.create(null);
+          drag = null;
+        } else {
+          lastTime = performance.now();
+          canvas.focus({ preventScroll: true });
+        }
+        updateDom();
+        playTone('button');
+      }
+
+      function endGame() {
+        if (state !== 'playing') return;
+        state = 'gameover';
+        player.alive = false;
+        addExplosion(player.x, player.y, 1.25);
+        if (score > bestScore) {
+          bestScore = score;
+          writeBestScore();
+        }
+        finalScoreEl.textContent = '得分 ' + score;
+        bestScoreEl.textContent = '最高分 ' + bestScore;
+        playTone('boom');
+        updateDom();
+      }
+
+      function updateDom() {
+        menuScreen.hidden = state !== 'menu';
+        pauseScreen.hidden = state !== 'paused';
+        gameOverScreen.hidden = state !== 'gameover';
+        pauseButton.hidden = state !== 'playing' && state !== 'paused';
+        pauseButton.setAttribute('aria-label', state === 'paused' ? '继续游戏' : '暂停游戏');
+        pauseIcon.src = state === 'paused' ? ASSETS.pause2 : ASSETS.pause1;
+        bombButton.dataset.visible = state === 'playing' ? 'true' : 'false';
+        bombCount.textContent = player ? String(player.bombs) : '0';
+        muteButton.textContent = muted ? '音效 关' : '音效 开';
+        muteButton.setAttribute('aria-pressed', muted ? 'true' : 'false');
+      }
+
+      function spawnEnemy(forceType) {
+        if (enemies.length >= 24) return;
+        var type = forceType;
+        if (!type) {
+          var roll = Math.random();
+          if (level >= 3 && roll > 0.88) type = 'big';
+          else if (level >= 2 && roll > 0.66) type = 'middle';
+          else type = 'small';
+        }
+
+        var config = {
+          small: { w: 40, h: 29, hp: 1, speed: 112 + level * 7, score: 10 },
+          middle: { w: 50, h: 64, hp: 3, speed: 82 + level * 4, score: 30 },
+          big: { w: 72, h: 104, hp: 8 + Math.floor(level * 0.8), speed: 50 + level * 2, score: 100 },
+          boss: { w: 126, h: 183, hp: 42 + level * 6, speed: 42, score: 500 }
+        }[type];
+
+        var enemy = {
+          type: type,
+          x: rand(config.w / 2 + 12, LOGICAL_W - config.w / 2 - 12),
+          y: type === 'boss' ? -config.h : -config.h - rand(0, 60),
+          w: config.w,
+          h: config.h,
+          hp: config.hp,
+          maxHp: config.hp,
+          speed: config.speed,
+          score: config.score,
+          phase: rand(0, Math.PI * 2),
+          fireTimer: rand(0.8, 1.8),
+          entered: false,
+          dead: false
+        };
+        enemies.push(enemy);
+        if (type === 'boss') boss = enemy;
+      }
+
+      function firePlayer() {
+        if (player.fireCooldown > 0 || bullets.length > 160) return;
+        player.fireCooldown = Math.max(0.09, 0.15 - player.firePower * 0.01);
+        var layouts = [
+          [{ dx: 0, vx: 0 }],
+          [{ dx: -12, vx: -18 }, { dx: 12, vx: 18 }],
+          [{ dx: 0, vx: 0 }, { dx: -18, vx: -34 }, { dx: 18, vx: 34 }]
+        ];
+        var layout = layouts[player.firePower - 1];
+        for (var i = 0; i < layout.length; i++) {
+          bullets.push({
+            x: player.x + layout[i].dx,
+            y: player.y - 38,
+            w: 8,
+            h: 20,
+            vx: layout[i].vx,
+            vy: -560,
+            damage: 1
+          });
+        }
+        playTone('shoot');
+      }
+
+      function fireEnemy(enemy) {
+        if (enemyBullets.length > 140 || enemy.y < 20 || enemy.y > LOGICAL_H * 0.72) return;
+
+        function addBullet(vx, vy, speedScale) {
+          var scale = speedScale || 1;
+          enemyBullets.push({
+            x: enemy.x,
+            y: enemy.y + enemy.h * 0.36,
+            w: 7,
+            h: 17,
+            vx: vx * scale,
+            vy: vy * scale,
+            damage: 1
+          });
+        }
+
+        if (enemy.type === 'boss') {
+          var mode = Math.floor(elapsed * 1.2) % 3;
+          if (mode === 0) {
+            for (var i = -2; i <= 2; i++) addBullet(i * 44, 170 + level * 4);
+          } else if (mode === 1) {
+            var dx = player.x - enemy.x;
+            var dy = player.y - enemy.y;
+            var len = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+            addBullet(dx / len * 170, dy / len * 170);
+          } else {
+            addBullet(-72, 155);
+            addBullet(0, 178);
+            addBullet(72, 155);
+          }
+        } else if (enemy.type === 'middle') {
+          addBullet(0, 190 + level * 4);
+        } else if (enemy.type === 'big') {
+          addBullet(-38, 170 + level * 3);
+          addBullet(38, 170 + level * 3);
+        }
+      }
+
+      function addExplosion(x, y, scale) {
+        if (explosions.length > 34) explosions.shift();
+        explosions.push({ x: x, y: y, scale: scale || 1, age: 0, duration: 0.7 });
+      }
+
+      function addFloatText(x, y, text, color) {
+        if (floatTexts.length > 16) floatTexts.shift();
+        floatTexts.push({ x: x, y: y, text: text, color: color, age: 0, duration: 0.9 });
+      }
+
+      function spawnPowerup(x, y, forcedType) {
+        if (powerups.length > 12) return;
+        var type = forcedType || (Math.random() < 0.62 ? 'bullet' : 'bomb');
+        powerups.push({
+          type: type,
+          x: clamp(x, 30, LOGICAL_W - 30),
+          y: y,
+          w: type === 'bullet' ? 37 : 37,
+          h: type === 'bullet' ? 59 : 48,
+          vy: 86,
+          age: 0
+        });
+      }
+
+      function damagePlayer(amount) {
+        if (player.invulnerable > 0 || state !== 'playing') return;
+        player.hp = Math.max(0, player.hp - amount);
+        player.invulnerable = 1.8;
+        combo = 0;
+        comboTimer = 0;
+        shake = Math.max(shake, 9);
+        addExplosion(player.x, player.y, 0.62);
+        playTone('hit');
+        if (player.hp <= 0) endGame();
+      }
+
+      function killEnemy(enemy, awardScore) {
+        if (enemy.dead) return;
+        enemy.dead = true;
+        var gained = awardScore === false ? 0 : enemy.score + Math.min(combo * 2, 40);
+        score += gained;
+        combo += 1;
+        comboTimer = 2.2;
+        addExplosion(enemy.x, enemy.y, enemy.type === 'boss' ? 1.9 : enemy.type === 'big' ? 1.2 : 0.75);
+        addFloatText(enemy.x, enemy.y, '+' + gained, '#fbbf24');
+        playTone('boom');
+        if (enemy.type === 'boss') {
+          boss = null;
+          spawnPowerup(enemy.x - 34, enemy.y, 'bullet');
+          spawnPowerup(enemy.x + 34, enemy.y, 'bomb');
+          nextBossScore = score + 600;
+        } else if (Math.random() < (enemy.type === 'big' ? 0.28 : enemy.type === 'middle' ? 0.16 : 0.08)) {
+          spawnPowerup(enemy.x, enemy.y);
+        }
+      }
+
+      function useBomb() {
+        if (state !== 'playing' || !player || player.bombs <= 0) return;
+        player.bombs -= 1;
+        enemyBullets.length = 0;
+        flash = 0.35;
+        shake = Math.max(shake, 16);
+        for (var i = enemies.length - 1; i >= 0; i--) {
+          enemies[i].hp -= enemies[i].type === 'boss' ? 8 : 5;
+          if (enemies[i].hp <= 0) killEnemy(enemies[i], true);
+        }
+        addFloatText(player.x, player.y - 70, '全屏轰炸', '#4fd1c5');
+        playTone('bomb');
+        updateDom();
+      }
+
+      function movePlayer(dt) {
+        var speed = 380;
+        var targetX = player.x;
+        var targetY = player.y;
+        var usedKeys = false;
+
+        if (keys.ArrowLeft || keys.KeyA) { targetX -= speed * dt; usedKeys = true; }
+        if (keys.ArrowRight || keys.KeyD) { targetX += speed * dt; usedKeys = true; }
+        if (keys.ArrowUp || keys.KeyW) { targetY -= speed * dt; usedKeys = true; }
+        if (keys.ArrowDown || keys.KeyS) { targetY += speed * dt; usedKeys = true; }
+
+        if (usedKeys) {
+          player.x = targetX;
+          player.y = targetY;
+        } else if (drag) {
+          var dx = drag.currentX - drag.startX;
+          var dy = drag.currentY - drag.startY;
+          var desiredX = drag.playerStartX + dx;
+          var desiredY = drag.playerStartY + dy;
+          var t = Math.min(1, dt * 18);
+          player.x += (desiredX - player.x) * t;
+          player.y += (desiredY - player.y) * t;
+        }
+
+        player.x = clamp(player.x, player.w / 2 + 8, LOGICAL_W - player.w / 2 - 8);
+        player.y = clamp(player.y, 74, LOGICAL_H - player.h / 2 - 12);
+      }
+
+      function updatePlaying(dt) {
+        elapsed += dt;
+        bgOffset = (bgOffset + (92 + level * 5) * dt) % 491.52;
+        level = Math.max(1, Math.floor(score / 220) + 1);
+
+        movePlayer(dt);
+        player.fireCooldown = Math.max(0, player.fireCooldown - dt);
+        player.invulnerable = Math.max(0, player.invulnerable - dt);
+        firePlayer();
+
+        spawnTimer -= dt;
+        var bossAlive = boss && !boss.dead;
+        if (spawnTimer <= 0 && !bossAlive) {
+          spawnEnemy();
+          spawnTimer = clamp(0.88 - level * 0.045, 0.32, 0.88);
+        }
+        if (!bossAlive && score >= nextBossScore) spawnEnemy('boss');
+
+        updateBullets(dt);
+        updateEnemies(dt);
+        updatePowerups(dt);
+        updateEffects(dt);
+
+        comboTimer -= dt;
+        if (comboTimer <= 0) combo = 0;
+        shake = Math.max(0, shake - dt * 34);
+        flash = Math.max(0, flash - dt);
+      }
+
+      function updateBullets(dt) {
+        for (var i = bullets.length - 1; i >= 0; i--) {
+          var b = bullets[i];
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+          if (b.y < -30 || b.x < -30 || b.x > LOGICAL_W + 30) bullets.splice(i, 1);
+        }
+
+        for (var j = enemyBullets.length - 1; j >= 0; j--) {
+          var eb = enemyBullets[j];
+          eb.x += eb.vx * dt;
+          eb.y += eb.vy * dt;
+          if (eb.y > LOGICAL_H + 30 || eb.x < -30 || eb.x > LOGICAL_W + 30 || eb.y < -40) {
+            enemyBullets.splice(j, 1);
+            continue;
+          }
+          if (player.invulnerable <= 0 && rectsOverlap(eb, player)) {
+            enemyBullets.splice(j, 1);
+            damagePlayer(eb.damage);
+          }
+        }
+      }
+
+      function updateEnemies(dt) {
+        for (var i = enemies.length - 1; i >= 0; i--) {
+          var enemy = enemies[i];
+          if (enemy.dead) {
+            enemies.splice(i, 1);
+            continue;
+          }
+
+          enemy.phase += dt * 2;
+          if (enemy.type === 'boss') {
+            if (!enemy.entered) {
+              enemy.y += 84 * dt;
+              if (enemy.y >= 116) enemy.entered = true;
+            } else {
+              enemy.x += Math.sin(enemy.phase * 0.85) * 92 * dt;
+              enemy.x = clamp(enemy.x, enemy.w / 2 + 12, LOGICAL_W - enemy.w / 2 - 12);
+            }
+          } else {
+            enemy.y += enemy.speed * dt;
+            enemy.x += Math.sin(enemy.phase) * (enemy.type === 'small' ? 34 : 18) * dt;
+          }
+
+          enemy.fireTimer -= dt;
+          if (enemy.fireTimer <= 0 && enemy.entered !== false) {
+            fireEnemy(enemy);
+            enemy.fireTimer = enemy.type === 'boss' ? 0.58 : enemy.type === 'big' ? 1.35 : 1.75;
+          }
+
+          for (var j = bullets.length - 1; j >= 0; j--) {
+            var bullet = bullets[j];
+            if (rectsOverlap(bullet, enemy)) {
+              bullets.splice(j, 1);
+              enemy.hp -= bullet.damage;
+              if (enemy.hp <= 0) {
+                killEnemy(enemy, true);
+                break;
+              }
+            }
+          }
+
+          if (!enemy.dead && player.invulnerable <= 0 && rectsOverlap(enemy, player)) {
+            killEnemy(enemy, false);
+            damagePlayer(1);
+          }
+
+          if (!enemy.dead && enemy.y > LOGICAL_H + enemy.h) enemies.splice(i, 1);
+        }
+      }
+
+      function updatePowerups(dt) {
+        for (var i = powerups.length - 1; i >= 0; i--) {
+          var item = powerups[i];
+          item.age += dt;
+          item.y += item.vy * dt;
+          item.x += Math.sin(item.age * 3) * 20 * dt;
+          if (item.y > LOGICAL_H + 50) {
+            powerups.splice(i, 1);
+            continue;
+          }
+          if (distanceSquared(item, player) < 42 * 42) {
+            if (item.type === 'bullet') {
+              player.firePower = Math.min(3, player.firePower + 1);
+              addFloatText(item.x, item.y, '火力提升', '#4fd1c5');
+            } else {
+              player.bombs = Math.min(3, player.bombs + 1);
+              addFloatText(item.x, item.y, '炸弹 +1', '#fbbf24');
+            }
+            powerups.splice(i, 1);
+            playTone('pickup');
+            updateDom();
+          }
+        }
+      }
+
+      function updateEffects(dt) {
+        for (var i = explosions.length - 1; i >= 0; i--) {
+          explosions[i].age += dt;
+          if (explosions[i].age >= explosions[i].duration) explosions.splice(i, 1);
+        }
+        for (var j = floatTexts.length - 1; j >= 0; j--) {
+          floatTexts[j].age += dt;
+          if (floatTexts[j].age >= floatTexts[j].duration) floatTexts.splice(j, 1);
+        }
+      }
+
+      function drawBackground() {
+        var img = images.bg;
+        var scale = LOGICAL_W / img.width;
+        var tileH = img.height * scale;
+        var y = bgOffset - tileH;
+        while (y < LOGICAL_H) {
+          ctx.drawImage(img, 0, y, LOGICAL_W, tileH);
+          y += tileH;
+        }
+      }
+
+      function drawSprite(img, x, y, w, h, rotation) {
+        ctx.save();
+        ctx.translate(x, y);
+        if (rotation) ctx.rotate(rotation);
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+      }
+
+      function drawPlayer() {
+        if (!player || !player.alive) return;
+        if (player.invulnerable > 0 && Math.floor(player.invulnerable * 14) % 2 === 0) return;
+
+        var tilt = 0;
+        if (keys.ArrowLeft || keys.KeyA) tilt = -0.08;
+        if (keys.ArrowRight || keys.KeyD) tilt = 0.08;
+        drawSprite(images.plane, player.x, player.y, player.w, player.h, tilt);
+
+        ctx.save();
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(player.x - 7, player.y + 31);
+        ctx.lineTo(player.x, player.y + 45 + Math.sin(elapsed * 36) * 5);
+        ctx.lineTo(player.x + 7, player.y + 31);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawEnemies() {
+        for (var i = 0; i < enemies.length; i++) {
+          var enemy = enemies[i];
+          var img = images[enemy.type === 'small' ? 'small' : enemy.type === 'middle' ? 'middle' : 'big'];
+          drawSprite(img, enemy.x, enemy.y, enemy.w, enemy.h, Math.PI);
+          if (enemy.maxHp > 1) {
+            var ratio = clamp(enemy.hp / enemy.maxHp, 0, 1);
+            ctx.fillStyle = 'rgba(10, 10, 11, 0.28)';
+            ctx.fillRect(enemy.x - enemy.w / 2, enemy.y + enemy.h / 2 + 5, enemy.w, 4);
+            ctx.fillStyle = enemy.type === 'boss' ? '#f87171' : '#fbbf24';
+            ctx.fillRect(enemy.x - enemy.w / 2, enemy.y + enemy.h / 2 + 5, enemy.w * ratio, 4);
+          }
+        }
+      }
+
+      function drawBullets() {
+        for (var i = 0; i < bullets.length; i++) {
+          var b = bullets[i];
+          drawSprite(images.yellowBullet, b.x, b.y, b.w, b.h, 0);
+        }
+        for (var j = 0; j < enemyBullets.length; j++) {
+          var eb = enemyBullets[j];
+          var angle = Math.atan2(eb.vy, eb.vx) + Math.PI / 2;
+          drawSprite(images.blueBullet, eb.x, eb.y, eb.w, eb.h, angle);
+        }
+      }
+
+      function drawPowerups() {
+        for (var i = 0; i < powerups.length; i++) {
+          var item = powerups[i];
+          var img = item.type === 'bullet' ? images.bulletAward : images.bombAward;
+          var bob = Math.sin(item.age * 6) * 3;
+          drawSprite(img, item.x, item.y + bob, item.w, item.h, 0);
+        }
+      }
+
+      function drawExplosions() {
+        var frameCount = 14;
+        var frameW = 64;
+        var frameH = 64;
+        for (var i = 0; i < explosions.length; i++) {
+          var ex = explosions[i];
+          var progress = clamp(ex.age / ex.duration, 0, 0.999);
+          var frame = Math.floor(progress * frameCount);
+          var size = 76 * ex.scale * (0.9 + progress * 0.25);
+          ctx.save();
+          ctx.globalAlpha = 1 - progress * 0.18;
+          ctx.drawImage(images.explosion, frame * frameW, 0, frameW, frameH, ex.x - size / 2, ex.y - size / 2, size, size);
+          ctx.restore();
+        }
+      }
+
+      function drawHud() {
+        ctx.save();
+        ctx.fillStyle = 'rgba(10, 10, 11, 0.38)';
+        ctx.fillRect(0, 0, LOGICAL_W, 62);
+
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 17px "Geist Mono", Consolas, monospace';
+        ctx.fillText('分数 ' + score, 14, 10);
+        ctx.font = '12px "Geist Mono", Consolas, monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.76)';
+        ctx.fillText('最高 ' + bestScore + '  Lv.' + level, 14, 35);
+
+        for (var i = 0; i < player.hp; i++) {
+          ctx.fillStyle = i < 3 ? '#4fd1c5' : '#fbbf24';
+          ctx.fillRect(150 + i * 15, 17, 10, 14);
+        }
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,0.76)';
+        ctx.fillText('火力 ' + player.firePower, LOGICAL_W - 104, 35);
+        if (combo > 1) {
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillText('连击 x' + combo, LOGICAL_W - 104, 12);
+        }
+        ctx.restore();
+      }
+
+      function drawFloatTexts() {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '700 15px "Geist", sans-serif';
+        for (var i = 0; i < floatTexts.length; i++) {
+          var item = floatTexts[i];
+          var p = item.age / item.duration;
+          ctx.globalAlpha = 1 - p;
+          ctx.fillStyle = item.color;
+          ctx.fillText(item.text, item.x, item.y - p * 34);
+        }
+        ctx.restore();
+      }
+
+      function render() {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
+        ctx.save();
+        if (shake > 0) ctx.translate(rand(-shake, shake) * 0.5, rand(-shake, shake) * 0.5);
+
+        drawBackground();
+        drawPowerups();
+        drawEnemies();
+        drawBullets();
+        drawPlayer();
+        drawExplosions();
+        drawFloatTexts();
+        if (state === 'playing' || state === 'paused') drawHud();
+
+        if (flash > 0) {
+          ctx.globalAlpha = clamp(flash / 0.35, 0, 1) * 0.36;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+          ctx.globalAlpha = 1;
+        }
+        ctx.restore();
+      }
+
+      function update(dt) {
+        if (state === 'playing') updatePlaying(dt);
+        else if (state === 'menu' || state === 'gameover') {
+          elapsed += dt;
+          bgOffset = (bgOffset + 56 * dt) % 491.52;
+          updateEffects(dt);
+        }
+      }
+
+      function loop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        var dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+        lastTime = timestamp;
+        if (Number.isFinite(dt) && dt > 0) update(dt);
+        render();
+        window.requestAnimationFrame(loop);
+      }
+
+      function canvasPoint(event) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: (event.clientX - rect.left) * LOGICAL_W / rect.width,
+          y: (event.clientY - rect.top) * LOGICAL_H / rect.height
+        };
+      }
+
+      canvas.addEventListener('pointerdown', function (event) {
+        event.preventDefault();
+        ensureAudio();
+        if (state === 'menu' || state === 'gameover') startGame();
+        if (state !== 'playing' || drag) return;
+        var p = canvasPoint(event);
+        drag = {
+          id: event.pointerId,
+          startX: p.x,
+          startY: p.y,
+          currentX: p.x,
+          currentY: p.y,
+          playerStartX: player.x,
+          playerStartY: player.y
+        };
+        try { canvas.setPointerCapture(event.pointerId); } catch (error) {}
+      });
+
+      canvas.addEventListener('pointermove', function (event) {
+        if (!drag || event.pointerId !== drag.id) return;
+        var p = canvasPoint(event);
+        drag.currentX = p.x;
+        drag.currentY = p.y;
+      });
+
+      function endPointer(event) {
+        if (drag && event.pointerId === drag.id) drag = null;
+      }
+
+      canvas.addEventListener('pointerup', endPointer);
+      canvas.addEventListener('pointercancel', endPointer);
+      canvas.addEventListener('lostpointercapture', endPointer);
+
+      window.addEventListener('keydown', function (event) {
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].indexOf(event.code) !== -1) {
+          event.preventDefault();
+        }
+        ensureAudio();
+        keys[event.code] = true;
+
+        if (event.repeat && (event.code === 'KeyP' || event.code === 'Enter' || event.code === 'Space')) return;
+        if ((state === 'menu' || state === 'gameover') && (event.code === 'Enter' || event.code === 'Space')) startGame();
+        else if (event.code === 'KeyP' || event.code === 'Escape') togglePause();
+        else if (event.code === 'KeyB') useBomb();
+      });
+
+      window.addEventListener('keyup', function (event) {
+        keys[event.code] = false;
+      });
+
+      window.addEventListener('blur', function () {
+        keys = Object.create(null);
+        drag = null;
+        if (state === 'playing') togglePause('paused');
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          keys = Object.create(null);
+          drag = null;
+          if (state === 'playing') togglePause('paused');
+        }
+      });
+
+      startButton.addEventListener('click', startGame);
+      restartButton.addEventListener('click', startGame);
+      pauseRestartButton.addEventListener('click', startGame);
+      resumeButton.addEventListener('click', function () { togglePause('playing'); });
+      pauseButton.addEventListener('click', function () { togglePause(); });
+      bombButton.addEventListener('click', function () { ensureAudio(); useBomb(); });
+      muteButton.addEventListener('click', function () {
+        muted = !muted;
+        if (!muted) ensureAudio();
+        updateDom();
+      });
+
+      window.addEventListener('resize', resizeCanvas);
+
+      resizeCanvas();
+      preload()
+        .then(function () {
+          loadingEl.hidden = true;
+          resetGame();
+          state = 'menu';
+          updateDom();
+          window.requestAnimationFrame(loop);
+        })
+        .catch(function (error) {
+          loadingEl.textContent = error.message;
+        });
+    })();
+  </script>
+</body>
+</html>
