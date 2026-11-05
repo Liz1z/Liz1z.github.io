@@ -92,6 +92,12 @@ export const siteConfig: SiteConfig = {
       tags: ['Next.js', 'MDX', 'Blog'],
       link: 'https://github.com/yourname/lumen',
     },
+    {
+      name: '微信飞机大战',
+      description: '微信小游戏版飞机大战，基于 Canvas 实现战机操控、敌机波次、碰撞检测与计分排行。',
+      tags: ['JavaScript', 'Canvas', 'WeChat Mini Game'],
+      link: 'https://github.com/yourname/wechat-plane-war',
+    },
   ],
 
   // ===== 技能栈=====
