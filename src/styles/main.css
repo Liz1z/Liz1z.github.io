@@ -1,0 +1,144 @@
+/* ============================================================
+ * 设计 Token —— 与 Ardot 设计稿《个人主页 · 深色极简》一致
+ * 详见工作区根目录 HANDOFF.md
+ * ============================================================ */
+:root {
+  --bg: #0a0a0b;
+  --card: #16161a;
+  --border: #27272a;
+  --accent: #4fd1c5;
+  --accent-dim: rgba(79, 209, 197, 0.12);
+  --accent-line: rgba(79, 209, 197, 0.35);
+  --text: #fafafa;
+  --body: #d4d4d8;
+  --muted: #a1a1aa;
+  --muted-2: #71717a;
+  --danger: #f87171;
+  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono',
+    'Cascadia Code', Consolas, monospace;
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+/* ===== Reset ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: rgba(79, 209, 197, 0.28);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+/* ===== 布局基元 ===== */
+.container {
+  width: min(1104px, 100% - 40px);
+  margin-inline: auto;
+}
+
+section {
+  padding-block: 76px;
+  border-top: 1px solid var(--border);
+  scroll-margin-top: 72px;
+}
+
+/* ===== 区块标题（各 section 复用） ===== */
+.section-head {
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.015em;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 640px) {
+  section {
+    padding-block: 56px;
+  }
+  .section-title {
+    font-size: 24px;
+  }
+}
+
+/* ===== 无障碍：尊重减少动效偏好 ===== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

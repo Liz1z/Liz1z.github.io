@@ -1,0 +1,117 @@
+/**
+ * 站点内容集中配置
+ * =================
+ * 替换真实信息只需修改这一个文件，无需触碰任何组件代码。
+ * 设计规范（颜色 token / 字体 / 区块结构）见项目根目录 HANDOFF.md。
+ */
+
+export interface SocialLink {
+  label: string
+  href: string
+  icon: 'github' | 'mail' | 'x'
+}
+
+export interface Project {
+  name: string
+  description: string
+  tags: string[]
+  link: string
+}
+
+export interface SkillCategory {
+  label: string
+  skills: string[]
+}
+
+export interface SiteConfig {
+  name: string
+  role: string
+  tagline: string
+  bio: string
+  status: string
+  email: string
+  codeCard: {
+    fileName: string
+    lines: string[]
+  }
+  projects: Project[]
+  skills: SkillCategory[]
+  socials: SocialLink[]
+  footer: {
+    year: string
+    builtWith: string
+    designedIn: string
+  }
+}
+
+export const siteConfig: SiteConfig = {
+  // ===== 基础信息（TODO: 替换为真实内容）=====
+  name: '苏明轩',
+  role: 'CS Student · 计算机科学',
+  tagline: '把想法编译成现实。',
+  bio: '一名喜欢造轮子的计算机科学学生，热衷于系统编程与 Web 开发。课余时间写 Rust、打 CTF、给开源项目提 PR，正在寻找 2026 年暑期实习机会。',
+  status: '目前在学：Rust + 分布式系统',
+  email: 'hello@sumingxuan.dev', // TODO: 替换为真实邮箱
+
+  // ===== Hero 代码卡 =====
+  codeCard: {
+    fileName: 'me.ts',
+    lines: [
+      'const me = {',
+      '  name: "苏明轩",',
+      '  role: "CS Student",',
+      '  learning: "Rust + Distributed Systems",',
+      '  openTo: "Internships & Collabs",',
+      '};',
+    ],
+  },
+
+  // ===== 项目展示（TODO: 替换为真实项目与链接）=====
+  projects: [
+    {
+      name: 'KVStore',
+      description: '基于 LSM-Tree 的高性能嵌入式 KV 存储引擎，支持 WAL 预写日志与快照隔离。',
+      tags: ['Rust', 'LSM-Tree', 'Storage'],
+      link: 'https://github.com/yourname/kvstore',
+    },
+    {
+      name: 'TermNote',
+      description: '终端里的 Markdown 笔记工具，支持双向链接、全文检索与本地加密同步。',
+      tags: ['Go', 'TUI', 'CLI'],
+      link: 'https://github.com/yourname/termnote',
+    },
+    {
+      name: 'SyncBoard',
+      description: '多人实时协作白板，基于 CRDT 实现离线编辑与无冲突合并。',
+      tags: ['React', 'WebSocket', 'CRDT'],
+      link: 'https://github.com/yourname/syncboard',
+    },
+    {
+      name: 'Lumen',
+      description: '极简风格的个人博客框架，内置暗色主题、RSS 与全文搜索。',
+      tags: ['Next.js', 'MDX', 'Blog'],
+      link: 'https://github.com/yourname/lumen',
+    },
+  ],
+
+  // ===== 技能栈（TODO: 替换为真实技能）=====
+  skills: [
+    { label: 'Languages', skills: ['Rust', 'Go', 'TypeScript', 'Java', 'C++'] },
+    { label: 'Frameworks', skills: ['Vue 3', 'React', 'Next.js', 'Axum', 'Spring Boot'] },
+    { label: 'Tools', skills: ['Git', 'Docker', 'Linux', 'Neovim', 'PostgreSQL'] },
+  ],
+
+  // ===== 社交链接（TODO: 替换为真实账号）=====
+  socials: [
+    { label: 'GitHub', href: 'https://github.com/yourname', icon: 'github' },
+    { label: 'Email', href: 'mailto:hello@sumingxuan.dev', icon: 'mail' },
+    { label: 'X / Twitter', href: 'https://x.com/yourname', icon: 'x' },
+  ],
+
+  // ===== 页脚 =====
+  footer: {
+    year: '2026',
+    builtWith: 'Vite + Vue 3',
+    designedIn: 'Ardot',
+  },
+}
